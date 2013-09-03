@@ -2,6 +2,7 @@ Simple PHP Chat
 ===============
 
 Author: Maslakov Alexander <jmas.ukraine@gmail.com>
+
 License: GPL v3 http://www.gnu.org/licenses/gpl.html
 
 INSTALLATION
