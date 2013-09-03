@@ -1,8 +1,10 @@
 <?php
 
-define('DB_PATH', 'mysql:dbname=dbname;host=127.0.0.1');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', 'password');
+file_exists('config.php') AND require_once('config.php');
+
+defined('DB_PATH') OR define('DB_PATH', 'mysql:dbname=dbname;host=127.0.0.1');
+defined('DB_USERNAME') OR define('DB_USERNAME', 'root');
+defined('DB_PASSWORD') OR define('DB_PASSWORD', 'password');
 
 /**
  * Get PDO connection.
