@@ -21,8 +21,8 @@
 				font-size:.8em;
 				width:800px;
 				margin:0 auto;
-				padding-bottom:200px;
 				padding-top:20px;
+				padding-bottom:200px;
 			}
 
 			#messagesList .item {
@@ -32,7 +32,15 @@
 			}
 
 			#errorContainer {
+				position:fixed;
+				bottom:30px;
+				left:50%;
 				color:red;
+				width:400px;
+				margin:0 auto;
+				margin-left:-200px;
+				font-size:.8em;
+				text-align:center;
 			}
 
 			#messageForm {
@@ -56,25 +64,26 @@
 			
 		</div>
 
+		<div id="errorContainer">
+			
+		</div>
+
 		<form id="messageForm">
 			<input id="messageContentField" name="text" value="" placeholder="Type message here&hellip;" autofocus />
 			<input type="submit" value="Send" /> 
 		</form>
 
-		<div id="errorContainer">
-			
-		</div>
-
 		<script>
 			var lastMessageTime,
-			      messagesListEl;
+			      messagesListEl,
+			      errorContainerEl;
+
+			errorContainerEl = $('#errorContainer');
 
 			$('#messageForm').on('submit', function() {
 				var messageContentFieldEl,
-				      messageContent,
-				      errorContainerEl;
+				      messageContent;
 
-				errorContainerEl = $('#errorContainer');
 				messageContentFieldEl = $('#messageContentField');
 				messageContent = messageContentFieldEl.val();
 
@@ -119,7 +128,6 @@
 					success: function(data)
 					{
 						if (data.error == false) {
-
 							if (data.messages.length > 0) {
 								for (var i=0; i<data.messages.length; i++) {
 									messagesListEl.append('<div class="item">' + data.messages[i].content + '</div>');
