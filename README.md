@@ -10,4 +10,5 @@ INSTALLATION
 
 1. Create new MySQL DB
 2. Execute dump from db.sql
-3. Change DB connection config in global.php
+2. Rename config.sample.php to config.php
+3. Open config.php and edit DB connection params
