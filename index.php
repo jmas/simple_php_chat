@@ -32,6 +32,9 @@
 				padding:.8em 1em;
 				margin-bottom:10px;
 				background:#fff;
+				word-break: break-all;
+				overflow: hidden;
+				text-overflow: ellipsis;
 			}
 
 			#errorContainer {
@@ -110,7 +113,8 @@
 			    errorContainerEl,
 			    messageContentFieldEl,
 			    messageContentFieldPosBottom,
-			    messageFormIsOpacity;
+			    messageFormIsOpacity,
+			    messagesListPosTop;
 
 			errorContainerEl = $('#errorContainer');
 			messageFormEl = $('#messageForm');
@@ -214,9 +218,15 @@
 			messageFormIsOpacity = false;
 
 			$(window).on('scroll', function() {
-				if ( (messagesListEl.offset().top + messagesListEl.height()) - $(window).scrollTop() > messageFormEl.offset().top - $(window).scrollTop() ) {
+				var windowScrollTop,
+					messagesListPosTop;
+
+				windowScrollTop = $(window).scrollTop();
+				messagesListPosTop = messagesListEl.offset().top;
+
+				if ( messagesListPosTop + messagesListEl.height() - windowScrollTop > messageFormEl.offset().top - windowScrollTop ) {
 					if (messageFormIsOpacity === false) {
-						messageFormEl.stop().animate({opacity: 0.7}, 300);
+						messageFormEl.stop().animate({opacity: 0.4}, 300);
 					}
 
 					messageFormIsOpacity = true;
