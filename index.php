@@ -55,7 +55,7 @@
 				background:#b1c8ef;
 				overflow: hidden;
 				padding: 0;
-				border:2px solid #b1c8ef;
+				border:2px solid #fff;
 			}
 
 			#messageContentField {
@@ -68,10 +68,11 @@
 				border:none;
 				outline: none;
 				color:#262626;
+
 			}
 
 			#messageContentField:focus {
-				background-color: #ffe9b2;
+				background:#FFFFCC;
 			}
 
 			#messageSubmitBtn {
@@ -82,7 +83,7 @@
 				width: 60px;
 				cursor: pointer;
 				border:none;
-				background-color: #b1c8ef;
+				background-color: #fff;
 				font-weight: bold;
 			}
 		</style>
@@ -104,45 +105,61 @@
 
 		<script>
 			var lastMessageTime,
-			      messagesListEl,
-			      errorContainerEl;
+				messageFormEl,
+			    messagesListEl,
+			    errorContainerEl,
+			    messageContentFieldEl,
+			    messageContentFieldPosBottom,
+			    messageFormIsOpacity;
 
 			errorContainerEl = $('#errorContainer');
+			messageFormEl = $('#messageForm');
+			messageContentFieldEl = $('#messageContentField');
+
+			messageFormElPosBottom = parseInt(messageFormEl.css('bottom'));
+			messageFormElHeight = parseInt(messageFormEl.height());
 
 			$('#messageForm').on('submit', function() {
-				var messageContentFieldEl,
-				      messageContent;
+				var messageContent;
 
-				messageContentFieldEl = $('#messageContentField');
 				messageContent = messageContentFieldEl.val().toString();
 
 				if (messageContent !== '') {
-					$.ajax({
-						type: 'post',
-						url: 'sendMessage.php',
-						dataType: 'json',
-						data: {
-							content: messageContent
-						},
-						success: function(data)
-						{
-							if (data.error !== false) {
-								errorContainerEl.html(data.error);
-							} else {
-								messageContentFieldEl.val('');
-								errorContainerEl.html('');
+					messageFormEl.animate({
+						bottom: - messageFormElHeight * 2
+					}, 300, function() {
+						$.ajax({
+							type: 'post',
+							url: 'sendMessage.php',
+							dataType: 'json',
+							data: {
+								content: messageContent
+							},
+							success: function(data)
+							{
+								if (data.error !== false) {
+									errorContainerEl.html(data.error);
+								} else {
+									messageContentFieldEl.val('');
+									errorContainerEl.html('');
+								}
+
+								messageFormEl.animate({
+									bottom: messageFormElPosBottom
+								}, 300);
+							},
+							error: function()
+							{
+								errorContainerEl.html('Error ajax request.');
 							}
-						},
-						error: function()
-						{
-							errorContainerEl.html('Error ajax request.');
-						}
+						});
 					});
 				}
 
 				return false;
 			});
 
+			// Updating messages
 			messagesListEl = $('#messagesList');
 
 			function updateMessages()
@@ -165,7 +182,7 @@
 								for (var i=0; i<data.messages.length; i++) {
 									if (data.messages[i].color !== undefined && data.messages[i].contrast_color !== undefined
 										&& data.messages[i].color !== '' && data.messages[i].contrast_color !== '') {
-										style = 'style="background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+'"';
+										style = 'style="background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';"';
 									} else {
 										style = '';
 									}
@@ -176,7 +193,7 @@
 
 								$('html, body').animate({
 									scrollTop: messagesListEl.find('.item').last().scroll().offset().top
-								}, 2000);
+								}, 5000);
 							}
 						} else {
 							errorContainerEl.html(data.error);
@@ -192,6 +209,25 @@
 			}
 
 			updateMessages();
+
+			// Scroll
+			messageFormIsOpacity = false;
+
+			$(window).on('scroll', function() {
+				if ( (messagesListEl.offset().top + messagesListEl.height()) - $(window).scrollTop() > messageFormEl.offset().top - $(window).scrollTop() ) {
+					if (messageFormIsOpacity === false) {
+						messageFormEl.stop().animate({opacity: 0.7}, 300);
+					}
+
+					messageFormIsOpacity = true;
+				} else {
+					if (messageFormIsOpacity === true) {
+						messageFormEl.stop().animate({opacity: 1}, 300);
+					}
+
+					messageFormIsOpacity = false;
+				}
+			});
 		</script>
 	</body>
 </html>
