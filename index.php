@@ -132,6 +132,8 @@
 					messageFormEl.animate({
 						bottom: - messageFormElHeight * 2
 					}, 300, function() {
+						messageContentFieldEl.val('');
+
 						$.ajax({
 							type: 'post',
 							url: 'sendMessage.php',
@@ -144,7 +146,6 @@
 								if (data.error !== false) {
 									errorContainerEl.html(data.error);
 								} else {
-									messageContentFieldEl.val('');
 									errorContainerEl.html('');
 								}
 
@@ -154,6 +155,7 @@
 							},
 							error: function()
 							{
+								messageContentFieldEl.val(messageContent);
 								errorContainerEl.html('Error ajax request.');
 							}
 						});
