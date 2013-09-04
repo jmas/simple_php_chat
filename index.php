@@ -15,14 +15,17 @@
 			body {
 				background:#eee;
 				font-family:sans-serif;
+				min-width: 400px;
 			}
 
 			#messagesList {
 				font-size:.8em;
-				width:800px;
+				max-width: 760px;
 				margin:0 auto;
 				padding-top:20px;
 				padding-bottom:200px;
+				padding-right: 20px;
+				padding-left: 20px;
 			}
 
 			#messagesList .item {
@@ -48,13 +51,39 @@
 				bottom:70px;
 				left:50%;
 				margin-left:-200px;
-				padding:1em;
 				width:400px;
 				background:#b1c8ef;
+				overflow: hidden;
+				padding: 0;
+				border:2px solid #b1c8ef;
 			}
 
 			#messageContentField {
-				width:350px;
+				width:85%;
+				padding:.3em;
+				padding-right: 15px;
+				font-size: 1.1em;
+				margin: 0;
+				background-color: #fff;
+				border:none;
+				outline: none;
+				color:#262626;
+			}
+
+			#messageContentField:focus {
+				background-color: #ffe9b2;
+			}
+
+			#messageSubmitBtn {
+				position: absolute;
+				top:0;
+				right:0;
+				height: 100%;
+				width: 60px;
+				cursor: pointer;
+				border:none;
+				background-color: #b1c8ef;
+				font-weight: bold;
 			}
 		</style>
 	</head>
@@ -70,7 +99,7 @@
 
 		<form id="messageForm">
 			<input id="messageContentField" name="text" value="" placeholder="Type message here&hellip;" autofocus />
-			<input type="submit" value="Send" /> 
+			<input id="messageSubmitBtn" type="submit" value="Send" /> 
 		</form>
 
 		<script>
@@ -85,7 +114,7 @@
 				      messageContent;
 
 				messageContentFieldEl = $('#messageContentField');
-				messageContent = messageContentFieldEl.val();
+				messageContent = messageContentFieldEl.val().toString();
 
 				if (messageContent !== '') {
 					$.ajax({

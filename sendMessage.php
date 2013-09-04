@@ -3,31 +3,53 @@
 require_once('global.php');
 require_once('IpToColorName.php');
 
-$messageContent = empty($_POST['content']) ? null: $_POST['content'];
+$messageContent = isset($_POST['content']) === false && strlen($_POST['content']) > 0 ? null: (string) $_POST['content'];
 
-$ip = $_SERVER['REMOTE_ADDR'];
+function insertMessage($messageContent)
+{
+	$messageContent = trim($messageContent);
 
-$ipToColorName = new IpToColorName($ip);
+	if (strlen($messageContent) === 0) {
+		return 'Message can\'t be empty.';
+	}
 
-$userColor = $ipToColorName->getColorHexValue('');
-$userContrastColor = getContrastYIQ($userColor);
+	$ip = $_SERVER['REMOTE_ADDR'];
 
-$query = 'INSERT INTO message(content, color, contrast_color) VALUES(:messageContent, :userColor, :userContrastColor)';
+	// Get color of IP address
+	$ipToColorName = new IpToColorName($ip);
 
-$error = false;
+	$userColor = $ipToColorName->getColorHexValue('');
+	$userContrastColor = getContrastYIQ($userColor);
 
-$db = getDb();
+	$query = '
+		INSERT INTO message(
+			content,
+			color,
+			contrast_color
+		) VALUES (
+			:messageContent,
+			:userColor,
+			:userContrastColor
+		)
+	';
 
-$sth = $db->prepare($query);
+	$error = false;
 
-$sth->bindValue(':messageContent', $messageContent);
-$sth->bindValue(':userColor', $userColor);
-$sth->bindValue(':userContrastColor', $userContrastColor);
+	$db = getDb();
 
-if ($sth->execute() === false) {
-	$error = $sth->errorInfo();
+	$sth = $db->prepare($query);
+
+	$sth->bindValue(':messageContent', $messageContent, PDO::PARAM_STR);
+	$sth->bindValue(':userColor', $userColor, PDO::PARAM_STR);
+	$sth->bindValue(':userContrastColor', $userContrastColor, PDO::PARAM_STR);
+
+	if ($sth->execute() === false) {
+		$error = $sth->errorInfo();
+	}
+
+	return $error;
 }
 
 echo json_encode(array(
-	'error' => $error,
+	'error' => insertMessage($messageContent),
 ));
