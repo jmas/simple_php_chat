@@ -170,10 +170,6 @@
 
 			function updateMessages()
 			{
-				var style;
-
-				style = '';
-
 				$.ajax({
 					url: 'getMessages.php',
 					type: 'get',
@@ -183,14 +179,16 @@
 					},
 					success: function(data)
 					{
+						var style;
+
 						if (data.error == false) {
 							if (data.messages.length > 0) {
 								for (var i=0; i<data.messages.length; i++) {
+									style = '';
+
 									if (data.messages[i].color !== undefined && data.messages[i].contrast_color !== undefined
 										&& data.messages[i].color !== '' && data.messages[i].contrast_color !== '') {
 										style = 'style="background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';"';
-									} else {
-										style = '';
 									}
 									
 									messagesListEl.append('<div class="item" '+style+'>' + data.messages[i].content + '</div>');
