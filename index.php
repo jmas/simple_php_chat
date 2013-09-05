@@ -1,6 +1,9 @@
 <html>
 	<head>
 		<title>Simple Chat</title>
+
+		<link id="favicon" rel="icon" type="image/png" href="favicon.png" />
+
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 
@@ -108,13 +111,22 @@
 
 		<script>
 			var lastMessageTime,
-				messageFormEl,
+			    messageFormEl,
 			    messagesListEl,
 			    errorContainerEl,
 			    messageContentFieldEl,
 			    messageContentFieldPosBottom,
 			    messageFormIsOpacity,
-			    messagesListPosTop;
+			    messagesListPosTop,
+				windowIsFocused,
+				notifyPremissionIsRequested,
+				nofifyPermissionStatus,
+				uneadMessagesCount;
+
+			uneadMessagesCount = 0;
+
+			windowIsFocused = true;
+			notifyPremissionIsRequested = false;
 
 			errorContainerEl = $('#errorContainer');
 			messageFormEl = $('#messageForm');
@@ -132,8 +144,6 @@
 					messageFormEl.animate({
 						bottom: - messageFormElHeight * 2
 					}, 300, function() {
-						messageContentFieldEl.val('');
-
 						$.ajax({
 							type: 'post',
 							url: 'sendMessage.php',
@@ -146,6 +156,7 @@
 								if (data.error !== false) {
 									errorContainerEl.html(data.error);
 								} else {
+									messageContentFieldEl.val('');
 									errorContainerEl.html('');
 								}
 
@@ -155,21 +166,80 @@
 							},
 							error: function()
 							{
-								messageContentFieldEl.val(messageContent);
 								errorContainerEl.html('Error ajax request.');
 							}
 						});
 					});
 				}
 
+				// if (notifyPremissionIsRequested === false) {
+				// 	try {
+				// 		Notification.requestPermission(function(permission) {
+				// 			nofifyPermissionStatus = permission;
+				// 		});
+				// 	} catch(e) {
+				// 		console.log('NOTIFICATION error: ' + e);
+				// 	}
+				// }
+
 				return false;
 			});
+
+			// Notifications
+			function notify(message)
+			{
+				try {
+					if (nofifyPermissionStatus === 'granted') {
+						return new Notification(message);
+					}
+				} catch (e) {
+					console.log('NOTIFICATION error: ' + e);
+				}
+
+				return false;
+			}
+
+			// Notify by Favicon
+			function notifyByFavicon(message)
+			{
+				var canvas = document.createElement('canvas'),
+					ctx,
+					img = document.createElement('img'),
+					linkEl = document.getElementById('favicon'),
+					clonedLinkEl = linkEl.cloneNode(true);
+					linkEl.parentNode.removeChild(linkEl);
+
+				if (canvas.getContext) {
+					canvas.height = canvas.width = 16;
+					ctx = canvas.getContext('2d');
+
+					img.onload = function () {
+						ctx.drawImage(this, 0, 0);
+
+						if (message !== null) {
+							ctx.font = 'bold 10px "helvetica", sans-serif';
+							ctx.fillStyle = '#F0EEDD';
+							ctx.fillText(message.toString(), 2, 12);
+						}
+
+						clonedLinkEl.href = canvas.toDataURL('image/png');
+
+						document.getElementsByTagName('head')[0].appendChild(clonedLinkEl);
+					};
+
+					img.src = 'favicon.png?' + Math.random();
+				}
+			}
 
 			// Updating messages
 			messagesListEl = $('#messagesList');
 
 			function updateMessages()
 			{
+				var style;
+
+				style = '';
+
 				$.ajax({
 					url: 'getMessages.php',
 					type: 'get',
@@ -179,16 +249,14 @@
 					},
 					success: function(data)
 					{
-						var style;
-
 						if (data.error == false) {
 							if (data.messages.length > 0) {
 								for (var i=0; i<data.messages.length; i++) {
-									style = '';
-
 									if (data.messages[i].color !== undefined && data.messages[i].contrast_color !== undefined
 										&& data.messages[i].color !== '' && data.messages[i].contrast_color !== '') {
 										style = 'style="background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';"';
+									} else {
+										style = '';
 									}
 									
 									messagesListEl.append('<div class="item" '+style+'>' + data.messages[i].content + '</div>');
@@ -197,7 +265,15 @@
 
 								$('html, body').animate({
 									scrollTop: messagesListEl.find('.item').last().scroll().offset().top
-								}, 5000);
+								}, 500);
+
+								//notify(data.messages.length + ' new messages');
+
+								if (windowIsFocused === false) {
+									uneadMessagesCount += data.messages.length;
+
+									notifyByFavicon(uneadMessagesCount);
+								}
 							}
 						} else {
 							errorContainerEl.html(data.error);
@@ -209,7 +285,7 @@
 					}
 				});
 
-				setTimeout(updateMessages, 1000);
+				setTimeout(updateMessages, 5000);
 			}
 
 			updateMessages();
@@ -237,6 +313,17 @@
 
 					messageFormIsOpacity = false;
 				}
+			});
+
+			// Focus / blur window
+			$(window).on('focus', function() {
+				windowIsFocused = true;
+				uneadMessagesCount = 0;
+				notifyByFavicon(null);
+			});
+
+			$(window).on('blur', function() {
+				windowIsFocused = false;
 			});
 		</script>
 	</body>
