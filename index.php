@@ -122,9 +122,9 @@
 				windowIsFocused,
 				notifyPremissionIsRequested,
 				nofifyPermissionStatus,
-				uneadMessagesCount;
+				unreadMessagesCount;
 
-			uneadMessagesCount = 0;
+			unreadMessagesCount = 0;
 
 			windowIsFocused = true;
 			notifyPremissionIsRequested = false;
@@ -171,6 +171,16 @@
 							}
 						});
 					});
+				} else {
+					messageContentFieldEl.stop().animate({
+						marginLeft: -50
+					}, 200).animate({
+						marginLeft: 50
+					}, 200).animate({
+						marginLeft: -50
+					}, 200).animate({
+						marginLeft: 0
+					}, 200);
 				}
 
 				// if (notifyPremissionIsRequested === false) {
@@ -279,9 +289,9 @@
 								//notify(data.messages.length + ' new messages');
 
 								if (windowIsFocused === false) {
-									uneadMessagesCount += data.messages.length;
+									unreadMessagesCount += data.messages.length;
 
-									notifyByFavicon(uneadMessagesCount);
+									notifyByFavicon(unreadMessagesCount);
 								}
 							}
 						} else {
@@ -327,7 +337,7 @@
 			// Focus / blur window
 			$(window).on('focus', function() {
 				windowIsFocused = true;
-				uneadMessagesCount = 0;
+				unreadMessagesCount = 0;
 				notifyByFavicon(null);
 			});
 
