@@ -22,6 +22,7 @@
 			}
 
 			#messagesList {
+				position: relative;
 				font-size:.8em;
 				max-width: 760px;
 				margin:0 auto;
@@ -236,10 +237,6 @@
 
 			function updateMessages()
 			{
-				var style;
-
-				style = '';
-
 				$.ajax({
 					url: 'getMessages.php',
 					type: 'get',
@@ -249,17 +246,29 @@
 					},
 					success: function(data)
 					{
+						var style,
+							itemEl;
+							// itemHeight,
+							// itemMarginBottom;
+
 						if (data.error == false) {
 							if (data.messages.length > 0) {
 								for (var i=0; i<data.messages.length; i++) {
+									style = 'opacity:0;';
+
 									if (data.messages[i].color !== undefined && data.messages[i].contrast_color !== undefined
 										&& data.messages[i].color !== '' && data.messages[i].contrast_color !== '') {
-										style = 'style="background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';"';
-									} else {
-										style = '';
+										style += 'background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';';
 									}
+
+									itemEl = $('<div class="item" style="'+style+'">' + data.messages[i].content + '</div>');
 									
-									messagesListEl.append('<div class="item" '+style+'>' + data.messages[i].content + '</div>');
+									messagesListEl.append(itemEl);
+
+									itemEl.animate({
+										opacity: 1
+									}, 300);
+
 									lastMessageTime = data.messages[i].unixtime;
 								}
 
