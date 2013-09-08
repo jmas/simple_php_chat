@@ -132,6 +132,8 @@
 				right:30px;
 				padding:15px;
 				background:#fff;
+				max-width: 160px;
+				font-size: .8em;
 			}
 
 			#userInfoContainer {
