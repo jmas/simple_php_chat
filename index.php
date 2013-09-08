@@ -46,10 +46,10 @@
 			#messagesList .user {
 				display: block;
 				position: absolute;
-				left:-34px;
+				left:-29px;
 				bottom:0;
-				width:30px;
-				height:30px;
+				width:25px;
+				height:25px;
 				background-size:100% 100%;
 				background:#fff;
 				padding: 2px;
@@ -68,8 +68,8 @@
 
 			#messagesList .photo {
 				display: block;
-				width:30px;
-				height:30px;
+				width: 100%;
+				height: 100%;
 				background-size:100% 100%;
 			}
 
@@ -183,6 +183,8 @@
 			notifyPremissionIsRequested = false;
 
 			errorContainerEl = $('#errorContainer');
+
+			// Send message
 			messageFormEl = $('#messageForm');
 			messageContentFieldEl = $('#messageContentField');
 
@@ -208,10 +210,10 @@
 							success: function(data)
 							{
 								if (data.error !== false) {
-									errorContainerEl.html(data.error);
+									error(data.error);
 								} else {
 									messageContentFieldEl.val('');
-									errorContainerEl.html('');
+									error('');
 								}
 
 								messageFormEl.animate({
@@ -220,7 +222,7 @@
 							},
 							error: function()
 							{
-								errorContainerEl.html('Error ajax request.');
+								error('Error ajax request.');
 							}
 						});
 					});
@@ -248,6 +250,22 @@
 
 				return false;
 			});
+
+			// Error notifications
+			function error(message)
+			{
+				errorContainerEl
+					.html(message)
+					.css('bottom', -100)
+					.stop()
+					.animate({bottom: 30}, 600);
+
+				setTimeout(function() {
+					errorContainerEl.animate({
+						bottom: -100
+					}, 600);
+				}, 3000);
+			}
 
 			// Notifications
 			function notify(message)
@@ -357,12 +375,12 @@
 								}
 							}
 						} else {
-							errorContainerEl.html(data.error);
+							error(data.error);
 						}
 					},
 					error: function()
 					{
-						errorContainerEl.html('Can\'t update messages.');
+						error('Can\'t update messages.');
 					}
 				});
 
@@ -419,14 +437,14 @@
 						if (data.error == false) {
 							callbackHandler(data.user);
 						} else {
+							error(data.error);
 							callbackHandler(null);
-							errorContainerEl.html(data.error);
 						}
 					},
 					error: function()
 					{
+						error('Can\'t login user.');
 						callbackHandler(null);
-						errorContainerEl.html('Can\'t login user.');
 					}
 				});
 			}
@@ -440,16 +458,17 @@
 					success: function(data)
 					{
 						if (data.error == false) {
+							setLoggedUser(null);
 							callbackHandler(true);
 						} else {
+							error(data.error);
 							callbackHandler(false);
-							errorContainerEl.html(data.error);
 						}
 					},
 					error: function()
 					{
+						error('Can\'t logout user.');
 						callbackHandler(false);
-						errorContainerEl.html('Can\'t logout user.');
 					}
 				});
 			}
@@ -468,12 +487,12 @@
 						if (data.error == false) {
 							getUser(setLoggedUser);
 						} else {
-							errorContainerEl.html(data.error);
+							error(data.error);
 						}
 					},
 					error: function()
 					{
-						errorContainerEl.html('Can\'t login user.');
+						error('Can\'t login user.');
 					}
 				});
 			}
@@ -501,14 +520,14 @@
 				}
 			}
 
-			getUser(setLoggedUser);
+			getUser(function(data) {
+				if (data !== null) {
+					setLoggedUser(data);
+				}
+			});
 
 			$('#userLogout').on('click', function() {
-				logoutUser(function(isLoggedout) {
-					if (isLoggedout === true) {
-						setLoggedUser(null);
-					}
-				});
+				logoutUser();
 
 				return false;
 			});
