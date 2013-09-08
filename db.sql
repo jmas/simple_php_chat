@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `message` (
   `color` varchar(6) COLLATE utf8_unicode_ci NOT NULL,
   `contrast_color` varchar(6) COLLATE utf8_unicode_ci NOT NULL,
   `user_id` int NOT NULL,
+  `likes` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=69 ;
 
