@@ -12,7 +12,9 @@ if ($lastMessageTime === null) {
 			t.*,
 			user.id AS user_id,
 			user.photo AS user_photo,
-			user.profile AS user_profile
+			user.profile AS user_profile,
+			user.first_name AS user_first_name,
+			user.last_name AS user_last_name
 		FROM
 			(SELECT
 				*,
@@ -33,7 +35,9 @@ if ($lastMessageTime === null) {
 			UNIX_TIMESTAMP(t.time) AS unixtime,
 			user.id AS user_id,
 			user.photo AS user_photo,
-			user.profile AS user_profile
+			user.profile AS user_profile,
+			user.first_name AS user_first_name,
+			user.last_name AS user_last_name
 		FROM
 				message AS t
 			LEFT JOIN

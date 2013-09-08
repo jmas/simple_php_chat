@@ -18,6 +18,7 @@
 
 			body {
 				background:#eee;
+				color:#555;
 				font-family:sans-serif;
 				min-width: 400px;
 			}
@@ -134,10 +135,33 @@
 				background:#fff;
 				max-width: 160px;
 				font-size: .8em;
+				color:#555;
 			}
 
 			#userInfoContainer {
 				display:none;
+			}
+
+			#userInfoPhoto {
+				width:40px;
+				height: 40px;
+				display: block;
+				margin:0 auto;
+				margin-bottom: .3em;
+				background-size: 100% 100%;
+			}
+
+			#userInfoName {
+				display: block;
+				text-align: center;
+				margin-bottom: .3em;
+				padding-bottom: .3em;
+				border-bottom: 1px solid #eee;
+			}
+
+			#userLogoutBtn {
+				display: block;
+				text-align: center;
 			}
 		</style>
 	</head>
@@ -159,8 +183,9 @@
 		<div id="userContainer">
 			<div id="uLogin" data-ulogin="display=small;fields=first_name,last_name,photo,photo_big;providers=vkontakte,odnoklassniki,mailru,facebook;hidden=other;redirect_uri=;callback=uloginCallbackHandler"></div>
 			<div id="userInfoContainer">
+				<span id="userInfoPhoto"></span>
 				<span id="userInfoName"></span>
-				<a id="userLogout" href="#">Logout</a>
+				<a id="userLogoutBtn" href="#">Logout</a>
 			</div>
 		</div>
 
@@ -347,11 +372,17 @@
 							if (data.messages.length > 0) {
 								for (var i=0; i<data.messages.length; i++) {
 									style = 'opacity:0;';
+									user = '';
 
 									if (data.messages[i].color !== undefined && data.messages[i].contrast_color !== undefined
-										&& data.messages[i].color !== '' && data.messages[i].contrast_color !== '') {
-										style += 'background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';';									}
-										user = data.messages[i].user_photo !== null ? '<span class="user"><a href="'+data.messages[i].user_profile+'" target="_blank"><span class="photo" style="background-image:url('+data.messages[i].user_photo+');"></span></a></span>': '';
+										&& data.messages[i].color !== '' && data.messages[i].contrast_color !== '')
+									{
+										style += 'background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';';
+									}
+									
+									if (data.messages[i].user_id) {
+										user = '<span class="user" title="'+ data.messages[i].user_first_name +' '+ data.messages[i].user_last_name +'"><a href="'+data.messages[i].user_profile+'" target="_blank"><span class="photo" style="background-image:url('+data.messages[i].user_photo+');"></span></a></span>';
+									}
 
 									itemEl = $('<div class="item" style="'+style+'">' + user + data.messages[i].content + '</div>');
 									
@@ -503,22 +534,27 @@
 			{
 				var uloginContainerEl,
 					userInfoContainerEl,
-					userInfoNameEl;
+					userInfoNameEl,
+					userInfoPhotoEl;
 
 				uloginContainerEl = $('#uLogin');
 				userInfoContainerEl = $('#userInfoContainer');
 				userInfoNameEl = $('#userInfoName');
+				userInfoPhotoEl = $('#userInfoPhoto');
 
 				loggedUserData = userData;
 
 				if (userData === null) {
 					uloginContainerEl.show();
 					userInfoContainerEl.hide();
+					userInfoPhoto.hide();
 				} else {
 					uloginContainerEl.hide();
 					userInfoContainerEl.show();
-
+					userInfoPhotoEl.show();
+					
 					userInfoNameEl.html(loggedUserData.first_name + ' ' + loggedUserData.last_name);
+					userInfoPhotoEl.css('background-image', 'url(' + loggedUserData.photo + ')');
 				}
 			}
 
@@ -528,7 +564,7 @@
 				}
 			});
 
-			$('#userLogout').on('click', function() {
+			$('#userLogoutBtn').on('click', function() {
 				logoutUser();
 
 				return false;
