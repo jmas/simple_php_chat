@@ -1,4 +1,32 @@
-<html>
+<?php
+
+require_once('global.php');
+
+$userId = getSessionValue('user.id');
+
+if ($userId === null) {
+
+	$db = getDb();
+
+	$query = '
+		INSERT INTO user(
+			first_name
+		) VALUES(
+			"Guest"
+		)
+	';
+
+	$sth = $db->prepare($query);
+	$sth->execute();
+
+	$userId = $db->lastInsertId();
+
+	setSessionValue('user', array(
+		'id' => $userId,
+	));
+}
+
+?><html>
 	<head>
 		<title>Simple Chat</title>
 
@@ -7,6 +35,7 @@
 		<script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 		<script src="//ulogin.ru/js/ulogin.js"></script>
+		<script src="//rawgithub.com/timrwood/moment/2.1.0/min/moment.min.js"></script>
 
 		<style>
 			html, body {
@@ -37,11 +66,23 @@
 			#messagesList .item {
 				position: relative;
 				padding:.8em 1em;
+				padding-right: 8em;
 				margin-bottom:10px;
 				background:#fff;
 				word-break: break-all;
 				/*overflow: hidden;*/
 				text-overflow: ellipsis;
+				line-height: 1.5em;
+			}
+
+			#messagesList .time {
+				position: absolute;
+				top:.55em;
+				right: 1em;
+				display: block;
+				font-size: .8em;
+				margin-top:.5em;
+				opacity: .6;
 			}
 
 			#messagesList .user {
@@ -384,7 +425,7 @@
 										user = '<span class="user" title="'+ data.messages[i].user_first_name +' '+ data.messages[i].user_last_name +'"><a href="'+data.messages[i].user_profile+'" target="_blank"><span class="photo" style="background-image:url('+data.messages[i].user_photo+');"></span></a></span>';
 									}
 
-									itemEl = $('<div class="item" style="'+style+'">' + user + data.messages[i].content + '</div>');
+									itemEl = $('<div class="item" style="'+style+'">' + user + data.messages[i].content + '<span class="time" data-unixtime="'+data.messages[i].unixtime+'">'+data.messages[i].time+'</span></div>');
 									
 									messagesListEl.append(itemEl);
 
@@ -407,6 +448,10 @@
 									notifyByFavicon(unreadMessagesCount);
 								}
 							}
+
+							messagesListEl.find('.time').each(function() {
+								$(this).html( moment.unix( $(this).data('unixtime') ).fromNow() );
+							});
 						} else {
 							error(data.error);
 						}
@@ -471,13 +516,19 @@
 							callbackHandler(data.user);
 						} else {
 							error(data.error);
-							callbackHandler(null);
+
+							if (typeof callbackHandler === 'function') {
+								callbackHandler(null);
+							}
 						}
 					},
 					error: function()
 					{
 						error('Can\'t login user.');
-						callbackHandler(null);
+
+						if (typeof callbackHandler === 'function') {
+							callbackHandler(null);
+						}
 					}
 				});
 			}
@@ -491,17 +542,30 @@
 					success: function(data)
 					{
 						if (data.error == false) {
-							setLoggedUser(null);
-							callbackHandler(true);
+							getUser(function(data) {
+								if (data !== null) {
+									setLoggedUser(data);
+								}
+							});
+
+							if (typeof callbackHandler === 'function') {
+								callbackHandler(true);
+							}
 						} else {
 							error(data.error);
-							callbackHandler(false);
+
+							if (typeof callbackHandler === 'function') {
+								callbackHandler(false);
+							}
 						}
 					},
 					error: function()
 					{
 						error('Can\'t logout user.');
-						callbackHandler(false);
+
+						if (typeof callbackHandler === 'function') {
+							callbackHandler(false);
+						}
 					}
 				});
 			}
@@ -543,11 +607,11 @@
 				userInfoPhotoEl = $('#userInfoPhoto');
 
 				loggedUserData = userData;
-
-				if (userData === null) {
+				
+				if (loggedUserData === null || loggedUserData.identity === '') {
 					uloginContainerEl.show();
 					userInfoContainerEl.hide();
-					userInfoPhoto.hide();
+					userInfoPhotoEl.hide();
 				} else {
 					uloginContainerEl.hide();
 					userInfoContainerEl.show();

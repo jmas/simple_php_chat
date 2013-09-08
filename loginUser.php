@@ -6,7 +6,7 @@ $token = empty($_GET['token']) ? null: $_GET['token'];
 
 function loginUser($token)
 {
-	$userId = null;
+	$userId = getSessionValue('user.id');
 
 	$url = 'https://ulogin.ru/token.php?token={TOKEN}';
 
@@ -37,7 +37,7 @@ function loginUser($token)
 	// 	&& empty($data[\'profile\']) === false
 	// 	&& empty($data[\'last_name\']) === false');
 
-	$query = 'SELECT id FROM user WHERE uid = :uid AND network = :network LIMIT 1';
+	$query = 'SELECT id, identity FROM user WHERE (uid = :uid AND network = :network) OR id = :id LIMIT 1';
 
 	$db = getDb();
 
@@ -45,6 +45,7 @@ function loginUser($token)
 
 	$sth->bindValue(':uid', $data['uid']);
 	$sth->bindValue(':network', $data['network']);
+	$sth->bindValue(':id', $userId);
 
 	if ($sth->execute() === false) {
 		return 'Can\'t read data from DB.';
@@ -90,13 +91,46 @@ function loginUser($token)
 			return 'Can\'t write data to DB.';
 		}
 
+		if ($userId !== null) {
+			$query = 'DELETE FROM user WHERE id = :id';
+
+			$sth = $db->prepare($query);
+
+			$sth->execute();
+		}
+
 		$userId = $db->lastInsertId();
+	} else if (empty($userData['identity']) === true) {
+		$query = '
+			UPDATE
+				user
+			SET
+				first_name = :firstName,
+				identity   = :identity,
+				uid        = :uid,
+				network    = :network,
+				profile    = :profile,
+				last_name  = :lastName,
+				photo      = :photo,
+				photo_big  = :photoBig
+		';
+
+		$sth = $db->prepare($query);
+
+		$sth->bindValue(':firstName', $data['first_name']);
+		$sth->bindValue(':identity', $data['identity']);
+		$sth->bindValue(':uid', $data['uid']);
+		$sth->bindValue(':network', $data['network']);
+		$sth->bindValue(':profile', $data['profile']);
+		$sth->bindValue(':lastName', $data['last_name']);
+		$sth->bindValue(':photo', $data['photo']);
+		$sth->bindValue(':photoBig', $data['photo_big']);
 	} else {
 		$userId = $userData['id'];
 	}
 
 	setSessionValue('user', array(
-		'id' => $userId
+		'id' => $userId,
 	));
 
 	return false;
