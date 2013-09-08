@@ -421,7 +421,7 @@ if ($userId === null) {
 										style += 'background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';';
 									}
 									
-									if (data.messages[i].user_id) {
+									if (data.messages[i].user_identity !== '') {
 										user = '<span class="user" title="'+ data.messages[i].user_first_name +' '+ data.messages[i].user_last_name +'"><a href="'+data.messages[i].user_profile+'" target="_blank"><span class="photo" style="background-image:url('+data.messages[i].user_photo+');"></span></a></span>';
 									}
 

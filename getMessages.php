@@ -11,6 +11,7 @@ if ($lastMessageTime === null) {
 		SELECT
 			t.*,
 			user.id AS user_id,
+			user.identity AS user_identity,
 			user.photo AS user_photo,
 			user.profile AS user_profile,
 			user.first_name AS user_first_name,
@@ -34,6 +35,7 @@ if ($lastMessageTime === null) {
 			t.*,
 			UNIX_TIMESTAMP(t.time) AS unixtime,
 			user.id AS user_id,
+			user.identity AS user_identity,
 			user.photo AS user_photo,
 			user.profile AS user_profile,
 			user.first_name AS user_first_name,
