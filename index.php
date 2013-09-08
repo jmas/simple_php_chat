@@ -4,8 +4,9 @@
 
 		<link id="favicon" rel="icon" type="image/png" href="favicon.png" />
 
-		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-		<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="//ulogin.ru/js/ulogin.js"></script>
 
 		<style>
 			html, body {
@@ -33,12 +34,43 @@
 			}
 
 			#messagesList .item {
+				position: relative;
 				padding:.8em 1em;
 				margin-bottom:10px;
 				background:#fff;
 				word-break: break-all;
-				overflow: hidden;
+				/*overflow: hidden;*/
 				text-overflow: ellipsis;
+			}
+
+			#messagesList .user {
+				display: block;
+				position: absolute;
+				left:-34px;
+				bottom:0;
+				width:30px;
+				height:30px;
+				background-size:100% 100%;
+				background:#fff;
+				padding: 2px;
+			}
+
+			#messagesList .user:after {
+				position: absolute;
+				bottom:0;
+				right:-7px;
+				width: 0;
+			    height: 0;
+			    border-bottom: 7px solid #fff; 
+    			border-right: 7px solid transparent;
+			    content: '';
+			}
+
+			#messagesList .photo {
+				display: block;
+				width:30px;
+				height:30px;
+				background-size:100% 100%;
 			}
 
 			#errorContainer {
@@ -93,6 +125,18 @@
 				background-color: #fff;
 				font-weight: bold;
 			}
+
+			#userContainer {
+				position: fixed;
+				top:30px;
+				right:30px;
+				padding:15px;
+				background:#fff;
+			}
+
+			#userInfoContainer {
+				display:none;
+			}
 		</style>
 	</head>
 	<body>
@@ -111,8 +155,11 @@
 		</form>
 
 		<div id="userContainer">
-			<script src="//ulogin.ru/js/ulogin.js"></script>
-			<div id="uLogin" data-ulogin="display=small;fields=first_name,last_name;providers=vkontakte,odnoklassniki,mailru,facebook;hidden=other;redirect_uri=http%3A%2F%2Fyandex.ru"></div>
+			<div id="uLogin" data-ulogin="display=small;fields=first_name,last_name,photo,photo_big;providers=vkontakte,odnoklassniki,mailru,facebook;hidden=other;redirect_uri=;callback=uloginCallbackHandler"></div>
+			<div id="userInfoContainer">
+				<span id="userInfoName"></span>
+				<a id="userLogout" href="#">Logout</a>
+			</div>
 		</div>
 
 		<script>
@@ -127,7 +174,8 @@
 				windowIsFocused,
 				notifyPremissionIsRequested,
 				nofifyPermissionStatus,
-				unreadMessagesCount;
+				unreadMessagesCount,
+				loggedUserData;
 
 			unreadMessagesCount = 0;
 
@@ -218,12 +266,22 @@
 			// Notify by Favicon
 			function notifyByFavicon(message)
 			{
-				var canvas = document.createElement('canvas'),
-					ctx,
-					img = document.createElement('img'),
-					linkEl = document.getElementById('favicon'),
+				var canvas, ctx, img, linkEl, clonedLinkEl;
+					
+					canvas = document.createElement('canvas');
+					img = document.createElement('img');
+					linkEl = document.getElementById('favicon');
+
+					if (linkEl === null) {
+						linkEl = document.createElement('link');
+						linkEl.id   = 'favicon';
+						linkEl.rel  = 'icon';
+						linkEl.type = 'image/png';
+					} else {
+						linkEl.parentNode.removeChild(linkEl);
+					}
+
 					clonedLinkEl = linkEl.cloneNode(true);
-					linkEl.parentNode.removeChild(linkEl);
 
 				if (canvas.getContext) {
 					canvas.height = canvas.width = 16;
@@ -262,7 +320,8 @@
 					success: function(data)
 					{
 						var style,
-							itemEl;
+							itemEl,
+							user;
 
 						if (data.error == false) {
 							if (data.messages.length > 0) {
@@ -272,8 +331,9 @@
 									if (data.messages[i].color !== undefined && data.messages[i].contrast_color !== undefined
 										&& data.messages[i].color !== '' && data.messages[i].contrast_color !== '') {
 										style += 'background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';';									}
+										user = data.messages[i].user_photo !== null ? '<span class="user"><a href="'+data.messages[i].user_profile+'" target="_blank"><span class="photo" style="background-image:url('+data.messages[i].user_photo+');"></span></a></span>': '';
 
-									itemEl = $('<div class="item" style="'+style+'">' + data.messages[i].content + '</div>');
+									itemEl = $('<div class="item" style="'+style+'">' + user + data.messages[i].content + '</div>');
 									
 									messagesListEl.append(itemEl);
 
@@ -345,6 +405,112 @@
 
 			$(window).on('blur', function() {
 				windowIsFocused = false;
+			});
+
+			// Login
+			function getUser(callbackHandler)
+			{
+				$.ajax({
+					url: 'getUser.php',
+					type: 'get',
+					dataType: 'json',
+					success: function(data)
+					{
+						if (data.error == false) {
+							callbackHandler(data.user);
+						} else {
+							callbackHandler(null);
+							errorContainerEl.html(data.error);
+						}
+					},
+					error: function()
+					{
+						callbackHandler(null);
+						errorContainerEl.html('Can\'t login user.');
+					}
+				});
+			}
+
+			function logoutUser(callbackHandler)
+			{
+				$.ajax({
+					url: 'logoutUser.php',
+					type: 'get',
+					dataType: 'json',
+					success: function(data)
+					{
+						if (data.error == false) {
+							callbackHandler(true);
+						} else {
+							callbackHandler(false);
+							errorContainerEl.html(data.error);
+						}
+					},
+					error: function()
+					{
+						callbackHandler(false);
+						errorContainerEl.html('Can\'t logout user.');
+					}
+				});
+			}
+
+			function uloginCallbackHandler(token)
+			{
+				$.ajax({
+					url: 'loginUser.php',
+					type: 'get',
+					dataType: 'json',
+					data: {
+						token: token
+					},
+					success: function(data)
+					{
+						if (data.error == false) {
+							getUser(setLoggedUser);
+						} else {
+							errorContainerEl.html(data.error);
+						}
+					},
+					error: function()
+					{
+						errorContainerEl.html('Can\'t login user.');
+					}
+				});
+			}
+
+			function setLoggedUser(userData)
+			{
+				var uloginContainerEl,
+					userInfoContainerEl,
+					userInfoNameEl;
+
+				uloginContainerEl = $('#uLogin');
+				userInfoContainerEl = $('#userInfoContainer');
+				userInfoNameEl = $('#userInfoName');
+
+				loggedUserData = userData;
+
+				if (userData === null) {
+					uloginContainerEl.show();
+					userInfoContainerEl.hide();
+				} else {
+					uloginContainerEl.hide();
+					userInfoContainerEl.show();
+
+					userInfoNameEl.html(loggedUserData.first_name + ' ' + loggedUserData.last_name);
+				}
+			}
+
+			getUser(setLoggedUser);
+
+			$('#userLogout').on('click', function() {
+				logoutUser(function(isLoggedout) {
+					if (isLoggedout === true) {
+						setLoggedUser(null);
+					}
+				});
+
+				return false;
 			});
 		</script>
 	</body>

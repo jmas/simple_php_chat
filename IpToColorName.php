@@ -105,7 +105,7 @@ class IpToColorName {
          *
          * @var string
          */
-        private $ipRegExp = '^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$';
+        private $ipRegExp = '/^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$/';
         
         /**
          * 0 - HTML color mame
@@ -269,7 +269,7 @@ class IpToColorName {
          * @return boolean
          */
         private function chceckIpAddr($ip=''){
-                return eregi($this->ipRegExp,$ip);
+                return preg_match($this->ipRegExp, $ip);
         }
         
         /**

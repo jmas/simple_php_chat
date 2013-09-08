@@ -21,15 +21,20 @@ function insertMessage($messageContent)
 	$userColor = $ipToColorName->getColorHexValue('');
 	$userContrastColor = getContrastYIQ($userColor);
 
+	$userId = getSessionValue('user.id');
+	$userId = $userId ? $userId: '0';
+
 	$query = '
 		INSERT INTO message(
 			content,
 			color,
-			contrast_color
+			contrast_color,
+			user_id
 		) VALUES (
 			:messageContent,
 			:userColor,
-			:userContrastColor
+			:userContrastColor,
+			:userId
 		)
 	';
 
@@ -42,6 +47,7 @@ function insertMessage($messageContent)
 	$sth->bindValue(':messageContent', $messageContent, PDO::PARAM_STR);
 	$sth->bindValue(':userColor', $userColor, PDO::PARAM_STR);
 	$sth->bindValue(':userContrastColor', $userContrastColor, PDO::PARAM_STR);
+	$sth->bindValue(':userId', $userId, PDO::PARAM_STR);
 
 	if ($sth->execute() === false) {
 		$error = $sth->errorInfo();

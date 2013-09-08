@@ -7,9 +7,41 @@ $lastMessageTime = empty($_GET['lastMessageTime']) ? null: $_GET['lastMessageTim
 $error = false;
 
 if ($lastMessageTime === null) {
-	$query = 'SELECT t.* FROM (SELECT *, UNIX_TIMESTAMP(time) AS unixtime FROM message ORDER BY time DESC LIMIT 20) AS t ORDER BY t.time ASC';
+	$query = '
+		SELECT
+			t.*,
+			user.id AS user_id,
+			user.photo AS user_photo,
+			user.profile AS user_profile
+		FROM
+			(SELECT
+				*,
+				UNIX_TIMESTAMP(time) AS unixtime
+			FROM
+				message
+			ORDER BY time DESC LIMIT 20) AS t
+			LEFT JOIN
+				user
+			ON
+				t.user_id = user.id
+		ORDER BY t.time ASC
+	';
 } else {
-	$query = 'SELECT *, UNIX_TIMESTAMP(time) AS unixtime FROM message WHERE UNIX_TIMESTAMP(time) > :lastMessageTime LIMIT 10';
+	$query = '
+		SELECT
+			t.*,
+			UNIX_TIMESTAMP(t.time) AS unixtime,
+			user.id AS user_id,
+			user.photo AS user_photo,
+			user.profile AS user_profile
+		FROM
+				message AS t
+			LEFT JOIN
+				user
+			ON
+				t.user_id = user.id
+		WHERE UNIX_TIMESTAMP(t.time) > :lastMessageTime LIMIT 10
+	';
 }
 
 $db = getDb();

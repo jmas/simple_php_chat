@@ -5,6 +5,88 @@ file_exists('config.php') AND require_once('config.php');
 defined('DB_PATH') OR define('DB_PATH', 'mysql:dbname=dbname;host=127.0.0.1');
 defined('DB_USERNAME') OR define('DB_USERNAME', 'root');
 defined('DB_PASSWORD') OR define('DB_PASSWORD', 'password');
+defined('SESSION_ID') OR define('SESSION_ID', '__globals');
+
+/**
+ * Get data from some $data array by $key.
+ * @param $key string Key of data. Can be key.subkey
+ * @param $defultValue mixed Default value of data if $key not founded
+ * @param $data array|null Data array for search. If null it takes $_REQUEST
+ * @return mixed Data of $data array by key
+ */
+function getData($key, $defaultValue=null, $data=null)
+{
+    if ($data === null) {
+        $data = $_REQUEST;
+    }
+
+    if (strstr($key, '.') === false) {
+        return empty($data[$key]) === false ? $data[$key]: $defaultValue;
+    } else {
+        $fieldNameSegments = explode('.', $key);
+        $fieldValue = &$data;
+
+        while ($fieldNameSegment = array_shift($fieldNameSegments)) {
+            if (empty($fieldValue[$fieldNameSegment]) === false) {
+                $fieldValue = &$fieldValue[$fieldNameSegment];
+            } else {
+                $fieldValue = $defaultValue;
+                break;
+            }
+        }
+
+        return $fieldValue;
+    }
+
+    return $defaultValue;
+}
+
+/**
+ *
+ */
+function setSessionValue($key, $value)
+{
+    if (session_id() === '') {
+        session_start();
+    }
+
+    $sessionId = SESSION_ID;
+
+    if (empty($_SESSION[SESSION_ID]) === true) {
+        $_SESSION[SESSION_ID] = array();
+    }
+
+    $_SESSION[SESSION_ID][$key] = $value;
+}
+
+/**
+ *
+ */
+function getSessionValue($key)
+{
+
+    if (session_id() === '') {
+        session_start();
+    }
+
+    if (empty($_SESSION[SESSION_ID]) === true) {
+        $_SESSION[SESSION_ID] = array();
+    }
+
+    return getData($key, null, $_SESSION[SESSION_ID]);
+}
+
+/**
+ *
+ */
+function deleteSessionKey($key)
+{
+    if (session_id() === '') {
+        session_start();
+    }
+
+    unset( $_SESSION[SESSION_ID][$key] );
+}
 
 /**
  * Get PDO connection.
@@ -50,5 +132,6 @@ function getContrastYIQ($hexcolor)
 	$g = hexdec(substr($hexcolor,2,2));
 	$b = hexdec(substr($hexcolor,4,2));
 	$yiq = (($r*299)+($g*587)+($b*114))/1000;
+        
 	return ($yiq >= 128) ? '000000' : 'ffffff';
 }
