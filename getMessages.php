@@ -57,7 +57,7 @@ if ($sth->execute() === false) {
 $messages = $sth->fetchAll();
 
 foreach ($messages as $i => $item) {
-	$messages[$i]['content'] = htmlspecialchars($item['content']);
+	$messages[$i]['content'] = stripslashes(htmlspecialchars($item['content']));
 }
 
 echo json_encode(array(
