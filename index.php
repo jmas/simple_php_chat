@@ -22,6 +22,7 @@
 			}
 
 			#messagesList {
+				position: relative;
 				font-size:.8em;
 				max-width: 760px;
 				margin:0 auto;
@@ -108,6 +109,11 @@
 			<input id="messageContentField" name="text" value="" placeholder="Type message here&hellip;" autofocus />
 			<input id="messageSubmitBtn" type="submit" value="Send" /> 
 		</form>
+
+		<div id="userContainer">
+			<script src="//ulogin.ru/js/ulogin.js"></script>
+			<div id="uLogin" data-ulogin="display=small;fields=first_name,last_name;providers=vkontakte,odnoklassniki,mailru,facebook;hidden=other;redirect_uri=http%3A%2F%2Fyandex.ru"></div>
+		</div>
 
 		<script>
 			var lastMessageTime,
@@ -245,19 +251,26 @@
 					},
 					success: function(data)
 					{
-						var style;
+						var style,
+							itemEl;
 
 						if (data.error == false) {
 							if (data.messages.length > 0) {
 								for (var i=0; i<data.messages.length; i++) {
-									style = '';
+									style = 'opacity:0;';
 
 									if (data.messages[i].color !== undefined && data.messages[i].contrast_color !== undefined
 										&& data.messages[i].color !== '' && data.messages[i].contrast_color !== '') {
-										style = 'style="background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';"';
-									}
+										style += 'background-color:#'+data.messages[i].color+'; color:'+data.messages[i].contrast_color+';';									}
+
+									itemEl = $('<div class="item" style="'+style+'">' + data.messages[i].content + '</div>');
 									
-									messagesListEl.append('<div class="item" '+style+'>' + data.messages[i].content + '</div>');
+									messagesListEl.append(itemEl);
+
+									itemEl.animate({
+										opacity: 1
+									}, 300);
+
 									lastMessageTime = data.messages[i].unixtime;
 								}
 
